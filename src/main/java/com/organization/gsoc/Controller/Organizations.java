@@ -15,7 +15,7 @@ import java.util.UUID;
 @RequestMapping("/api/organizations")
 public interface Organizations {
     @GetMapping("")
-    public ResponseEntity<Map<String, OrganizationsResponseDTO>> getOrganizations(@RequestParam(name="page", defaultValue = "0") int pageNumber, @RequestParam(name="size", defaultValue = "10") int size);
+    public ResponseEntity<Map<String, OrganizationsResponseDTO>> getOrganizations(@RequestParam(required = false) String search, @RequestParam(name="page", defaultValue = "0") int pageNumber, @RequestParam(name="size", defaultValue = "10") int size);
 
     @GetMapping("/{id}")
     public ResponseEntity<Map<String, OrganizationDetailsDTO>> getOrganization(@PathVariable UUID id);

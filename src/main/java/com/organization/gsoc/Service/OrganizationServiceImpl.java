@@ -6,6 +6,7 @@ import com.organization.gsoc.DTO.OrganizationSummaryDTO;
 import com.organization.gsoc.DTO.OrganizationsResponseDTO;
 import com.organization.gsoc.Entity.OrganizationEntity;
 import com.organization.gsoc.Exception.NoPageException;
+import com.organization.gsoc.Exception.OrganicationNotFoundException;
 import com.organization.gsoc.Repository.*;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -40,7 +41,7 @@ public class OrganizationServiceImpl implements OrganizationService {
         this.organizationYearRepository = organizationYearRepository;
     }
 
-    public OrganizationsResponseDTO getOrganizations(int page, int size) {
+    public OrganizationsResponseDTO getOrganizations(String search, int page, int size) {
         long totalRecords = organizationRepository.count();
         int totalPages = (int) Math.ceil((double) totalRecords / size);
 
@@ -52,7 +53,13 @@ public class OrganizationServiceImpl implements OrganizationService {
 
         PageRequest pageable = PageRequest.of(page - 1, size, Sort.by("name").ascending());
 
-        Page<OrganizationEntity> organizationPage = organizationRepository.findAll(pageable);
+        Page<OrganizationEntity> organizationPage;
+
+        if(search == null || search.isBlank()) {
+            organizationPage = organizationRepository.findAll(pageable);
+        } else {
+            organizationPage = organizationRepository.findByNameContainingIgnoreCase(search.trim(), pageable);
+        }
 
         List<OrganizationSummaryDTO> organizations = organizationPage.getContent().stream().map(this::toSummaryDTO).toList();
 
@@ -81,8 +88,11 @@ public class OrganizationServiceImpl implements OrganizationService {
     }
 
     public OrganizationDetailsDTO getOrganizationById(UUID id) {
-        OrganizationEntity organization = organizationRepository.findById(id).orElseThrow(() -> new RuntimeException("Organization not Found" + id));
-
+        System.out.println("Organization ");
+        OrganizationEntity organization = organizationRepository.findById(id).orElseThrow(() -> new OrganicationNotFoundException(
+                "Organization not found: " + id
+        ));
+        System.out.println("Organization not found");
         List<Integer> years = organizationYearRepository.findYearsByOrganizationId(id);
         List<String> categories = organizationCategoryRepository.findCategoryNamesByOrganizationId(id);
         List<String> topics =organizationTopicRepository.findTopicNameByOrganizationId(id);

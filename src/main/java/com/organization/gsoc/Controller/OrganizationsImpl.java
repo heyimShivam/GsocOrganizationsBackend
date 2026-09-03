@@ -21,13 +21,15 @@ public class OrganizationsImpl implements Organizations {
         this.organizationService = organizationServiceImpl;
     }
 
-    public ResponseEntity<Map<String, OrganizationsResponseDTO>> getOrganizations(@RequestParam(name="page", defaultValue = "1") int pageNumber, @RequestParam(name="size", defaultValue = "10") int size) {
-        OrganizationsResponseDTO result = organizationService.getOrganizations(pageNumber, size);
+    public ResponseEntity<Map<String, OrganizationsResponseDTO>> getOrganizations(@RequestParam(required = false) String search,@RequestParam(name="page", defaultValue = "1") int pageNumber, @RequestParam(name="size", defaultValue = "10") int size) {
+        OrganizationsResponseDTO result = organizationService.getOrganizations(search, pageNumber, size);
         return ResponseEntity.ok().body(Map.of("data", result));
     }
 
     public ResponseEntity<Map<String, OrganizationDetailsDTO>> getOrganization(@PathVariable UUID id) {
+        System.out.println("wor");
         OrganizationDetailsDTO result = organizationService.getOrganizationById(id);
+        System.out.println("workkks");
         return ResponseEntity.ok().body(Map.of("data", result));
     }
 }

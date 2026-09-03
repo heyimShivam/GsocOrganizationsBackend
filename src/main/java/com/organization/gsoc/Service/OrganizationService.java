@@ -9,6 +9,6 @@ import java.util.UUID;
 
 @Service
 public interface OrganizationService {
-    public OrganizationsResponseDTO getOrganizations(int page, int size);
+    public OrganizationsResponseDTO getOrganizations(String search, int page, int size);
     public OrganizationDetailsDTO getOrganizationById(UUID id);
 }
