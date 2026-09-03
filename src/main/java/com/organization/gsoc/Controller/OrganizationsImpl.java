@@ -26,7 +26,7 @@ public class OrganizationsImpl implements Organizations {
     public ResponseEntity<Map<String, OrganizationsResponseDTO>> getOrganizations(
             @RequestBody(required = false) OrganizationFilterDTO search,
             @RequestParam(name = "page", defaultValue = "1") int pageNumber,
-            @RequestParam(name = "size", defaultValue = "10") int size) {
+            @RequestParam(name = "size", defaultValue = "24") int size) {
         search = (search == null ? (new OrganizationFilterDTO(
                 "", List.of(), List.of(), List.of(), List.of(), null, SortBy.NAME, SortDirection.ASC)
         ) : search);

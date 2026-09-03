@@ -45,28 +45,22 @@ public class OrganizationServiceImpl implements OrganizationService {
                     "Page number must be greater than or equal to 1"
             );
         }
-
-        Sort.Direction direction =
-                filter.sortDirection() == SortDirection.DESC
-                        ? Sort.Direction.DESC
-                        : Sort.Direction.ASC;
-
-        // To be implemented in future
-        String sortField = switch (filter.sortBy()) {
-            case NAME -> "name";
-            case POPULARITY -> "name";
-            case FREQUENT_SEARCH -> "name";
-        };
-
-        PageRequest pageable = PageRequest.of(page - 1, size, Sort.by(direction, sortField));
-
-        Page<OrganizationEntity> organizationPage;
-
-        if(filterByOrgName == null || filterByOrgName.isBlank()) {
-            organizationPage = organizationRepository.findAll(pageable);
-        } else {
-            organizationPage = organizationRepository.findByNameContainingIgnoreCase(filterByOrgName.trim(), pageable);
+        if (size < 1) {
+            throw new IllegalArgumentException(
+                    "Size must be greater than 0"
+            );
         }
+
+        PageRequest pageable = PageRequest.of(
+                page - 1,
+                size
+        );
+
+        Page<OrganizationEntity> organizationPage =
+                organizationRepository.searchOrganizations(
+                        filter,
+                        pageable
+                );
 
         if (page > organizationPage.getTotalPages()
                 && organizationPage.getTotalPages() > 0) {
