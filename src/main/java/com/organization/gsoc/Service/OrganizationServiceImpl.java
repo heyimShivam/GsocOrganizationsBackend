@@ -1,10 +1,8 @@
 package com.organization.gsoc.Service;
 
-import com.organization.gsoc.DTO.OrganizationContactDTO;
-import com.organization.gsoc.DTO.OrganizationDetailsDTO;
-import com.organization.gsoc.DTO.OrganizationSummaryDTO;
-import com.organization.gsoc.DTO.OrganizationsResponseDTO;
+import com.organization.gsoc.DTO.*;
 import com.organization.gsoc.Entity.OrganizationEntity;
+import com.organization.gsoc.Enums.SortDirection;
 import com.organization.gsoc.Exception.NoPageException;
 import com.organization.gsoc.Exception.OrganizationNotFoundException;
 import com.organization.gsoc.Repository.*;
@@ -40,21 +38,34 @@ public class OrganizationServiceImpl implements OrganizationService {
         this.organizationYearRepository = organizationYearRepository;
     }
 
-    public OrganizationsResponseDTO getOrganizations(String search, int page, int size) {
+    public OrganizationsResponseDTO getOrganizations(OrganizationFilterDTO filter, int page, int size) {
+        String filterByOrgName = filter.orgName();
         if (page < 1) {
             throw new NoPageException(
                     "Page number must be greater than or equal to 1"
             );
         }
 
-        PageRequest pageable = PageRequest.of(page - 1, size, Sort.by("name").ascending());
+        Sort.Direction direction =
+                filter.sortDirection() == SortDirection.DESC
+                        ? Sort.Direction.DESC
+                        : Sort.Direction.ASC;
+
+        // To be implemented in future
+        String sortField = switch (filter.sortBy()) {
+            case NAME -> "name";
+            case POPULARITY -> "name";
+            case FREQUENT_SEARCH -> "name";
+        };
+
+        PageRequest pageable = PageRequest.of(page - 1, size, Sort.by(direction, sortField));
 
         Page<OrganizationEntity> organizationPage;
 
-        if(search == null || search.isBlank()) {
+        if(filterByOrgName == null || filterByOrgName.isBlank()) {
             organizationPage = organizationRepository.findAll(pageable);
         } else {
-            organizationPage = organizationRepository.findByNameContainingIgnoreCase(search.trim(), pageable);
+            organizationPage = organizationRepository.findByNameContainingIgnoreCase(filterByOrgName.trim(), pageable);
         }
 
         if (page > organizationPage.getTotalPages()
