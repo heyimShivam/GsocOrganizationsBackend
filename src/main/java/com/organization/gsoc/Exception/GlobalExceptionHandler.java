@@ -21,9 +21,9 @@ public class GlobalExceptionHandler {
                 .body(Map.of("message", ex.getMessage()));
     }
 
-    @ExceptionHandler(OrganicationNotFoundException.class)
+    @ExceptionHandler(OrganizationNotFoundException.class)
     public ResponseEntity<Map<String, String>> handleOrganizationNotFound(
-            OrganicationNotFoundException ex) {
+            OrganizationNotFoundException ex) {
 
         return ResponseEntity
                 .status(HttpStatus.NOT_FOUND)

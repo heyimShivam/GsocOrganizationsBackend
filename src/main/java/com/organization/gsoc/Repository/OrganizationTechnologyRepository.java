@@ -20,4 +20,19 @@ public interface OrganizationTechnologyRepository extends JpaRepository<Organiza
     List<String> findTechnologyNameByOrganizationId (
             @Param("organizationId") UUID organizationId
     );
+
+    @Query(
+            value = """
+                    SELECT ot.organization_id, t.name
+                    FROM technologies t
+                    JOIN organization_technologies ot
+                        ON ot.technology_id = t.id
+                    WHERE ot.organization_id IN (:organizationIds)
+                    ORDER BY t.name ASC
+                    """,
+            nativeQuery = true
+    )
+    List<Object[]> findTechnologyNamesByOrganizationIds(
+            @Param("organizationIds") List<UUID> organizationIds
+    );
 }

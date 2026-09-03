@@ -9,6 +9,9 @@ public record OrganizationSummaryDTO(
         String imageUrl,
         String description,
         String githubID,
-        boolean activeOrg
+        String imageBackgroundColor,
+        boolean activeOrg,
+        List<String> technologies,
+        List<Integer> years
 ) {
 }

@@ -6,15 +6,14 @@ import com.organization.gsoc.DTO.OrganizationSummaryDTO;
 import com.organization.gsoc.DTO.OrganizationsResponseDTO;
 import com.organization.gsoc.Entity.OrganizationEntity;
 import com.organization.gsoc.Exception.NoPageException;
-import com.organization.gsoc.Exception.OrganicationNotFoundException;
+import com.organization.gsoc.Exception.OrganizationNotFoundException;
 import com.organization.gsoc.Repository.*;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
 
 @Service
 public class OrganizationServiceImpl implements OrganizationService {
@@ -42,12 +41,9 @@ public class OrganizationServiceImpl implements OrganizationService {
     }
 
     public OrganizationsResponseDTO getOrganizations(String search, int page, int size) {
-        long totalRecords = organizationRepository.count();
-        int totalPages = (int) Math.ceil((double) totalRecords / size);
-
-        if (page < 1 || page > totalPages) {
+        if (page < 1) {
             throw new NoPageException(
-                    "Page " + page + " does not exist. Total pages available: " + totalPages
+                    "Page number must be greater than or equal to 1"
             );
         }
 
@@ -61,12 +57,76 @@ public class OrganizationServiceImpl implements OrganizationService {
             organizationPage = organizationRepository.findByNameContainingIgnoreCase(search.trim(), pageable);
         }
 
-        List<OrganizationSummaryDTO> organizations = organizationPage.getContent().stream().map(this::toSummaryDTO).toList();
+        if (page > organizationPage.getTotalPages()
+                && organizationPage.getTotalPages() > 0) {
+            throw new NoPageException(
+                    "Page " + page +
+                            " does not exist. Total pages available: " +
+                            organizationPage.getTotalPages()
+            );
+        }
+
+        List<OrganizationEntity> organizations =
+                organizationPage.getContent();
+
+        List<UUID> organizationIds =
+                organizations.stream()
+                        .map(OrganizationEntity::getId)
+                        .toList();
+        List<Object[]> yearResults =
+                organizationYearRepository
+                        .findYearsByOrganizationIds(organizationIds);
+
+        List<Object[]> technologyResults =
+                organizationTechnologyRepository
+                        .findTechnologyNamesByOrganizationIds(organizationIds);
+        Map<UUID, List<Integer>> yearsMap = new HashMap<>();
+
+        for (Object[] row : yearResults) {
+            UUID organizationId = (UUID) row[0];
+            Integer year = (Integer) row[1];
+
+            yearsMap
+                    .computeIfAbsent(
+                            organizationId,
+                            key -> new ArrayList<>()
+                    )
+                    .add(year);
+        }
+
+        Map<UUID, List<String>> technologiesMap = new HashMap<>();
+
+        for (Object[] row : technologyResults) {
+            UUID organizationId = (UUID) row[0];
+            String technology = (String) row[1];
+
+            technologiesMap
+                    .computeIfAbsent(
+                            organizationId,
+                            key -> new ArrayList<>()
+                    )
+                    .add(technology);
+        }
+
+
+        List<OrganizationSummaryDTO> organizationDTOs =
+                organizations.stream()
+                        .map(organization -> {
+
+                            UUID id = organization.getId();
+
+                            return toSummaryDTO(
+                                    organization,
+                                    yearsMap.getOrDefault(id, List.of()),
+                                    technologiesMap.getOrDefault(id, List.of())
+                            );
+                        })
+                        .toList();
 
         return new OrganizationsResponseDTO(
                 organizationPage.getNumber() + 1,
                 organizationPage.getSize(),
-                organizations,
+                organizationDTOs,
                 organizationPage.getTotalElements(),
                 organizationPage.getTotalPages(),
                 organizationPage.isFirst(),
@@ -75,28 +135,36 @@ public class OrganizationServiceImpl implements OrganizationService {
     }
 
     private OrganizationSummaryDTO toSummaryDTO(
-            OrganizationEntity organization
+            OrganizationEntity organization,
+            List<Integer> years,
+            List<String> technologies
     ) {
+        UUID id = organization.getId();
+
         return new OrganizationSummaryDTO(
                 organization.getId(),
                 organization.getName(),
                 organization.getImageUrl(),
                 organization.getDescription(),
                 organization.getGithubId(),
-                organization.isActiveOrg()
+                organization.getImageBackgroundColor(),
+                organization.isActiveOrg(),
+                technologies,
+                years
+
         );
     }
 
     public OrganizationDetailsDTO getOrganizationById(UUID id) {
         System.out.println("Organization ");
-        OrganizationEntity organization = organizationRepository.findById(id).orElseThrow(() -> new OrganicationNotFoundException(
+        OrganizationEntity organization = organizationRepository.findById(id).orElseThrow(() -> new OrganizationNotFoundException(
                 "Organization not found: " + id
         ));
         System.out.println("Organization not found");
         List<Integer> years = organizationYearRepository.findYearsByOrganizationId(id);
+        List<String> technologies = organizationTechnologyRepository.findTechnologyNameByOrganizationId(id);
         List<String> categories = organizationCategoryRepository.findCategoryNamesByOrganizationId(id);
         List<String> topics =organizationTopicRepository.findTopicNameByOrganizationId(id);
-        List<String> technologies = organizationTechnologyRepository.findTechnologyNameByOrganizationId(id);
         OrganizationContactDTO contact = organizationContactRepository.findContactByOrganizationId(id).map(result -> new OrganizationContactDTO(
                 result.getIrcChannel(),
                 result.getContactEmail(),
