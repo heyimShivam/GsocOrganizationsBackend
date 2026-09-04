@@ -129,9 +129,9 @@ public class OrganizationServiceImpl implements OrganizationService {
                         .toList();
 
         return new OrganizationsResponseDTO(
+                organizationDTOs,
                 organizationPage.getNumber() + 1,
                 organizationPage.getSize(),
-                organizationDTOs,
                 organizationPage.getTotalElements(),
                 organizationPage.getTotalPages(),
                 organizationPage.isFirst(),

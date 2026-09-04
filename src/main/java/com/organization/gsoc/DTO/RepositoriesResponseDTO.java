@@ -1,10 +1,9 @@
 package com.organization.gsoc.DTO;
 
 import java.util.List;
-import java.util.UUID;
 
-public record OrganizationsResponseDTO(
-        List<OrganizationSummaryDTO> content,
+public record RepositoriesResponseDTO(
+        List<RepositorySummaryDTO> content,
         int page,
         int size,
         long totalRecords,
