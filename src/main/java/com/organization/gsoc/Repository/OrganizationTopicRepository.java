@@ -20,4 +20,32 @@ public interface OrganizationTopicRepository extends JpaRepository<OrganizationE
     List<String> findTopicNameByOrganizationId(
             @Param("organizationId") UUID organizationId
     );
+
+    @Query(
+            value = """
+                    SELECT ot.organization_id, t.name
+                    FROM topics t
+                    JOIN organization_topics ot
+                        ON ot.topic_id = t.id
+                    WHERE ot.organization_id IN (:organizationIds)
+                    ORDER BY t.name ASC
+                    """,
+            nativeQuery = true
+    )
+    List<Object[]> findTopicNamesByOrganizationIds(
+            @Param("organizationIds") List<UUID> organizationIds
+    );
+
+
+    @Query(
+            value = """
+                SELECT DISTINCT t.name
+                FROM topics t
+                JOIN organization_topics ot
+                    ON ot.topic_id = t.id
+                ORDER BY t.name ASC
+                """,
+            nativeQuery = true
+    )
+    List<String> findAllTopicNames();
 }

@@ -23,4 +23,31 @@ public interface OrganizationCategoryRepository extends JpaRepository<Organizati
     List<String> findCategoryNamesByOrganizationId(
             @Param("organizationId") UUID organizationId
     );
+
+    @Query(
+            value = """
+                    SELECT oc.organization_id, c.name
+                    FROM categories c
+                    JOIN organization_categories oc
+                        ON oc.category_id = c.id
+                    WHERE oc.organization_id IN (:organizationIds)
+                    ORDER BY c.name ASC
+                    """,
+            nativeQuery = true
+    )
+    List<Object[]> findCategoryNamesByOrganizationIds(
+            @Param("organizationIds") List<UUID> organizationIds
+    );
+
+    @Query(
+            value = """
+                SELECT DISTINCT c.name
+                FROM categories c
+                JOIN organization_categories oc
+                    ON oc.category_id = c.id
+                ORDER BY c.name ASC
+                """,
+            nativeQuery = true
+    )
+    List<String> findAllCategoryNames();
 }

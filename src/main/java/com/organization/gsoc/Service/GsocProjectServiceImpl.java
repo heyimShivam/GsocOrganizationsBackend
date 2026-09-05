@@ -2,6 +2,7 @@ package com.organization.gsoc.Service;
 
 import com.organization.gsoc.DTO.GsocProjectFilterRequest;
 import com.organization.gsoc.DTO.GsocProjectSummaryDTO;
+import com.organization.gsoc.DTO.GsocProjectYearSummaryDTO;
 import com.organization.gsoc.DTO.GsocProjectsResponseDTO;
 import com.organization.gsoc.Entity.GsocProjectEntity;
 import com.organization.gsoc.Exception.NoPageException;
@@ -10,8 +11,11 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 @Service
 public class GsocProjectServiceImpl
@@ -83,7 +87,7 @@ public class GsocProjectServiceImpl
             );
         }
 
-        List<GsocProjectSummaryDTO> projects =
+        Map<Integer, List<GsocProjectSummaryDTO>> projectsByYear =
                 data.stream()
                         .map(project ->
                                 new GsocProjectSummaryDTO(
@@ -97,10 +101,14 @@ public class GsocProjectServiceImpl
                                         project.getProjectUrl()
                                 )
                         )
-                        .toList();
+                        .collect(Collectors.groupingBy(
+                                GsocProjectSummaryDTO::year,
+                                LinkedHashMap::new,
+                                Collectors.toList()
+                        ));
 
         return new GsocProjectsResponseDTO(
-                projects,
+                projectsByYear,
                 data.getNumber() + 1,
                 data.getSize(),
                 data.getTotalElements(),
@@ -108,5 +116,23 @@ public class GsocProjectServiceImpl
                 data.isFirst(),
                 data.isLast()
         );
+    }
+
+    //    new
+    @Override
+    public List<GsocProjectYearSummaryDTO> getProjectYears(
+            UUID organizationId
+    ) {
+
+        List<Object[]> results =
+                gsocProjectRepository
+                        .findProjectCountByYear(organizationId);
+
+        return results.stream()
+                .map(row -> new GsocProjectYearSummaryDTO(
+                        ((Number) row[0]).intValue(),
+                        ((Number) row[1]).longValue()
+                ))
+                .toList();
     }
 }

@@ -81,7 +81,12 @@ public class OrganizationServiceImpl implements OrganizationService {
         List<Object[]> yearResults =
                 organizationYearRepository
                         .findYearsByOrganizationIds(organizationIds);
-
+        List<Object[]> categoryResults =
+                organizationCategoryRepository
+                        .findCategoryNamesByOrganizationIds(organizationIds);
+        List<Object[]> topicResults =
+                organizationTopicRepository
+                        .findTopicNamesByOrganizationIds(organizationIds);
         List<Object[]> technologyResults =
                 organizationTechnologyRepository
                         .findTechnologyNamesByOrganizationIds(organizationIds);
@@ -113,7 +118,34 @@ public class OrganizationServiceImpl implements OrganizationService {
                     .add(technology);
         }
 
+        Map<UUID, List<String>> categoriesMap = new HashMap<>();
 
+        for (Object[] row : categoryResults) {
+
+            UUID organizationId = (UUID) row[0];
+            String category = (String) row[1];
+
+            categoriesMap
+                    .computeIfAbsent(
+                            organizationId,
+                            key -> new ArrayList<>()
+                    )
+                    .add(category);
+        }
+        Map<UUID, List<String>> topicsMap = new HashMap<>();
+
+        for (Object[] row : topicResults) {
+
+            UUID organizationId = (UUID) row[0];
+            String topic = (String) row[1];
+
+            topicsMap
+                    .computeIfAbsent(
+                            organizationId,
+                            key -> new ArrayList<>()
+                    )
+                    .add(topic);
+        }
         List<OrganizationSummaryDTO> organizationDTOs =
                 organizations.stream()
                         .map(organization -> {
@@ -123,7 +155,9 @@ public class OrganizationServiceImpl implements OrganizationService {
                             return toSummaryDTO(
                                     organization,
                                     yearsMap.getOrDefault(id, List.of()),
-                                    technologiesMap.getOrDefault(id, List.of())
+                                    technologiesMap.getOrDefault(id, List.of()),
+                                    categoriesMap.getOrDefault(id, List.of()),
+                                    topicsMap.getOrDefault(id, List.of())
                             );
                         })
                         .toList();
@@ -142,7 +176,9 @@ public class OrganizationServiceImpl implements OrganizationService {
     private OrganizationSummaryDTO toSummaryDTO(
             OrganizationEntity organization,
             List<Integer> years,
-            List<String> technologies
+            List<String> technologies,
+            List<String> categories,
+            List<String> topics
     ) {
         UUID id = organization.getId();
 
@@ -155,8 +191,9 @@ public class OrganizationServiceImpl implements OrganizationService {
                 organization.getImageBackgroundColor(),
                 organization.isActiveOrg(),
                 technologies,
-                years
-
+                years,
+                categories,
+                topics
         );
     }
 

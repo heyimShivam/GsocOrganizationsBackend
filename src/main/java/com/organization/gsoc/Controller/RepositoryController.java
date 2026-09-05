@@ -11,7 +11,7 @@ import java.util.UUID;
 
 @RequestMapping("/api")
 public interface RepositoryController {
-    @GetMapping("/repositories/{organizationId}")
+    @PostMapping("/repositories/{organizationId}")
     public ResponseEntity<Map<String, RepositoriesResponseDTO>> getRepositories(
             @PathVariable UUID organizationId,
             @RequestParam(name = "page", defaultValue = "1") int pageNumber,

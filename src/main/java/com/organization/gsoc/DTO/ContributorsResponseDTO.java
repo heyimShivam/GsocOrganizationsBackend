@@ -1,11 +1,10 @@
 package com.organization.gsoc.DTO;
 
 import java.util.List;
-import java.util.Map;
 
-public record GsocProjectsResponseDTO(
+public record ContributorsResponseDTO(
 
-        Map<Integer, List<GsocProjectSummaryDTO>> content,
+        List<ContributorSummaryDTO> content,
 
         int page,
 

@@ -12,7 +12,7 @@ import java.util.UUID;
 
 @RequestMapping("/api/organizations")
 public interface Organizations {
-    @GetMapping("")
+    @PostMapping("")
     public ResponseEntity<Map<String, OrganizationsResponseDTO>> getOrganizations(@RequestBody(required = false) OrganizationFilterDTO search, @RequestParam(name="page", defaultValue = "0") int pageNumber, @RequestParam(name="size", defaultValue = "10") int size);
 
     @GetMapping("/{id}")

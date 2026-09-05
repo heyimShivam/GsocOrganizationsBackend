@@ -33,4 +33,14 @@ public interface OrganizationYearRepository extends JpaRepository<OrganizationEn
     List<Object[]> findYearsByOrganizationIds(
             @Param("organizationIds") List<UUID> organizationIds
     );
+
+    @Query(
+            value = """
+                SELECT DISTINCT year
+                FROM organization_years
+                ORDER BY year ASC
+                """,
+            nativeQuery = true
+    )
+    List<Integer> findAllYears();
 }
