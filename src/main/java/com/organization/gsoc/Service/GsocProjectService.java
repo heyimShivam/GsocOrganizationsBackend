@@ -16,7 +16,6 @@ public interface GsocProjectService {
             GsocProjectFilterRequest filterRequest
     );
 
-//    new
     List<GsocProjectYearSummaryDTO> getProjectYears(
             UUID organizationId
     );

@@ -50,4 +50,92 @@ public class GlobalExceptionHandler {
                         "Invalid request parameter."
                 ));
     }
+
+    @ExceptionHandler(PasswordMismatchException.class)
+    public ResponseEntity<Map<String, String>> handlePasswordMismatch(
+            PasswordMismatchException ex
+    ) {
+        return ResponseEntity
+                .badRequest()
+                .body(Map.of(
+                        "message", ex.getMessage()
+                ));
+    }
+
+    @ExceptionHandler(EmailAlreadyExistsException.class)
+    public ResponseEntity<Map<String, String>> handleEmailAlreadyExists(
+            EmailAlreadyExistsException ex
+    ) {
+        return ResponseEntity
+                .status(HttpStatus.CONFLICT)
+                .body(Map.of(
+                        "message", ex.getMessage()
+                ));
+    }
+
+    @ExceptionHandler(InvalidVerificationTokenException.class)
+    public ResponseEntity<Map<String, String>> handleInvalidVerificationToken(
+            InvalidVerificationTokenException ex
+    ) {
+        return ResponseEntity
+                .badRequest()
+                .body(Map.of(
+                        "message",
+                        ex.getMessage()
+                ));
+    }
+
+    @ExceptionHandler(VerificationTokenAlreadyUsedException.class)
+    public ResponseEntity<Map<String, String>> handleVerificationTokenAlreadyUsed(
+            VerificationTokenAlreadyUsedException ex
+    ) {
+        return ResponseEntity
+                .badRequest()
+                .body(Map.of(
+                        "message",
+                        ex.getMessage()
+                ));
+    }
+
+    @ExceptionHandler(VerificationTokenExpiredException.class)
+    public ResponseEntity<Map<String, String>> handleVerificationTokenExpired(
+            VerificationTokenExpiredException ex
+    ) {
+        return ResponseEntity
+                .badRequest()
+                .body(Map.of(
+                        "message",
+                        ex.getMessage()
+                ));
+    }
+
+    @ExceptionHandler(InvalidCredentialsException.class)
+    public ResponseEntity<Map<String, String>> handleInvalidCredentials(
+            InvalidCredentialsException ex
+    ) {
+        return ResponseEntity
+                .status(HttpStatus.UNAUTHORIZED)
+                .body(Map.of("message", ex.getMessage()));
+    }
+
+    @ExceptionHandler(EmailNotVerifiedException.class)
+    public ResponseEntity<Map<String, String>> handleEmailNotVerified(
+            EmailNotVerifiedException ex
+    ) {
+        return ResponseEntity
+                .status(HttpStatus.FORBIDDEN)
+                .body(Map.of("message", ex.getMessage()));
+    }
+
+    @ExceptionHandler(AuthenticatedUserNotFoundException.class)
+    public ResponseEntity<Map<String, String>> handleAuthenticatedUserNotFound(
+            AuthenticatedUserNotFoundException ex
+    ) {
+        return ResponseEntity
+                .status(HttpStatus.NOT_FOUND)
+                .body(Map.of(
+                        "message",
+                        ex.getMessage()
+                ));
+    }
 }

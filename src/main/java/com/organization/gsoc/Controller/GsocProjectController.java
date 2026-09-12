@@ -28,7 +28,6 @@ public interface GsocProjectController {
             GsocProjectFilterRequest filterRequest
     );
 
-    //    new
     @GetMapping("/projects/{organizationId}/years")
     ResponseEntity<Map<String, List<GsocProjectYearSummaryDTO>>>
     getProjectYears(
