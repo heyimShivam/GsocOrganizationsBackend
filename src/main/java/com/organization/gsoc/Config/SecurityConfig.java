@@ -40,8 +40,47 @@ public class SecurityConfig {
                                 "/api/auth/login",
                                 "/api/auth/verify-email",
                                 "/api/auth/resend-verification",
-                                "/oauth2/**"
+                                "/oauth2/**",
+
+                                // OAuth
+                                "/oauth2/**",
+                                "/login/**",
+
+                                // Contact Us
+                                "/api/contact-us",
+
+                                // Organizations
+                                "/api/organizations",
+                                "/api/organizations/**",
+
+                                // Repositories
+                                "/api/repositories",
+                                "/api/repositories/**",
+
+                                // Topics
+                                "/api/topics",
+                                "/api/topics/**",
+
+                                // Categories
+                                "/api/categories",
+                                "/api/categories/**",
+
+                                // Technologies
+                                "/api/technologies",
+                                "/api/technologies/**",
+
+                                // Organization filters
+                                "/api/all-filters",
+
+                                // GSoC projects
+                                "/api/projects",
+                                "/api/projects/**",
+
+                                // Contributors
+                                "/api/organizations/*/contributors"
+
                         ).permitAll()
+                        .requestMatchers("/api/admin/**").hasRole("ADMIN")
                         .anyRequest().authenticated()
                 ).oauth2Login(oauth -> oauth
                         .successHandler(googleOAuth2SuccessHandler)
