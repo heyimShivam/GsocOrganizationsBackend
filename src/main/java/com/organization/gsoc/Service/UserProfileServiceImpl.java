@@ -5,6 +5,7 @@ import com.organization.gsoc.DTO.UpdateProfileRequest;
 import com.organization.gsoc.Entity.UserBookmarkEntity;
 import com.organization.gsoc.Entity.UserEntity;
 import com.organization.gsoc.Exception.AuthenticatedUserNotFoundException;
+import com.organization.gsoc.Exception.GithubUsernameAlreadyExistsException;
 import com.organization.gsoc.Exception.OrganizationNotFoundException;
 import com.organization.gsoc.Repository.OrganizationRepository;
 import com.organization.gsoc.Repository.UserBookmarkRepository;
@@ -42,6 +43,13 @@ public class UserProfileServiceImpl implements UserProfileService {
         return buildUserResponse(user);
     }
 
+    public AuthUserResponse getCurrentUserByGithub(String githubUsername) {
+
+        UserEntity user = getCurrentUserByGithubUsername(githubUsername);
+
+        return buildUserResponse(user);
+    }
+
     @Override
     public AuthUserResponse updateProfile(
             String email,
@@ -50,10 +58,37 @@ public class UserProfileServiceImpl implements UserProfileService {
 
         UserEntity user = getUserByEmail(email);
 
+        String githubUsername = request.githubUsername();
+
+        if (githubUsername != null) {
+            githubUsername = githubUsername.trim();
+
+            if (githubUsername.isBlank()) {
+                githubUsername = null;
+            }
+        }
+
+        /*
+         * Check whether this GitHub username belongs
+         * to another user.
+         *
+         * The current user's own ID is excluded.
+         */
+        if (githubUsername != null
+                && userRepository.existsByGithubUsernameAndIdNot(
+                githubUsername,
+                user.getId()
+        )) {
+
+            throw new GithubUsernameAlreadyExistsException(
+                    "GitHub username is already associated with another account"
+            );
+        }
+
         user.setName(request.name().trim());
         user.setDescription(request.description());
         user.setQuote(request.quote());
-        user.setGithubUsername(request.githubUsername());
+        user.setGithubUsername(githubUsername);
 
         userRepository.save(user);
 
@@ -111,6 +146,17 @@ public class UserProfileServiceImpl implements UserProfileService {
         UserEntity user = getUserByEmail(email);
 
         return buildUserResponse(user);
+    }
+
+    private UserEntity getCurrentUserByGithubUsername(String githubUsername) {
+
+        return userRepository.findByGithubUsername(
+                githubUsername.trim().toLowerCase()
+        ).orElseThrow(() ->
+                new AuthenticatedUserNotFoundException(
+                        "user not found"
+                )
+        );
     }
 
     private UserEntity getUserByEmail(String email) {

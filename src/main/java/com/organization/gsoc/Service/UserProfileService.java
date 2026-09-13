@@ -8,6 +8,7 @@ import java.util.UUID;
 public interface UserProfileService {
 
     AuthUserResponse getCurrentUser(String email);
+    AuthUserResponse getCurrentUserByGithub(String gihtubId);
 
     AuthUserResponse updateProfile(
             String email,

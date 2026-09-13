@@ -9,6 +9,15 @@ import java.util.UUID;
 public interface UserRepository extends JpaRepository<UserEntity, UUID> {
 
     Optional<UserEntity> findByEmail(String email);
+    Optional<UserEntity> findByGithubUsername(String githubUsername);
 
     boolean existsByEmail(String email);
+
+    boolean existsByGithubUsername(String githubUsername);
+
+    boolean existsByGithubUsernameAndIdNot(
+            String githubUsername,
+            UUID id
+    );
+
 }

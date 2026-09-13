@@ -64,8 +64,7 @@ public class AuthServiceImpl implements AuthService {
     @Override
     @Transactional
     public void signup(SignupRequest request) {
-        System.out.println(System.getenv("MAIL_USERNAME"));
-        System.out.println(System.getenv("MAIL_PASSWORD"));
+
         // 1. Check password confirmation
         if (!request.password().equals(request.confirmPassword())) {
             throw new PasswordMismatchException(
@@ -85,28 +84,51 @@ public class AuthServiceImpl implements AuthService {
             );
         }
 
-        // 4. Hash password using BCrypt
+        // 4. Normalize GitHub username
+        String githubUsername = request.githubUsername();
+
+        if (githubUsername != null) {
+            githubUsername = githubUsername.trim();
+
+            if (githubUsername.isBlank()) {
+                githubUsername = null;
+            }
+        }
+
+        // 5. Check GitHub username uniqueness
+        if (githubUsername != null
+                && userRepository.existsByGithubUsername(githubUsername)) {
+
+            throw new GithubUsernameAlreadyExistsException(
+                    "GitHub username is already associated with another account"
+            );
+        }
+
+        // 6. Hash password
         String hashedPassword =
                 passwordEncoder.encode(request.password());
 
-        // 5. Create user
+        // 7. Create user
         UserEntity user = new UserEntity();
 
         user.setName(request.name().trim());
         user.setEmail(email);
         user.setPassword(hashedPassword);
-        user.setGithubUsername(request.githubUsername());
+
+        // IMPORTANT: use normalized value
+        user.setGithubUsername(githubUsername);
+
         user.setRole(UserRole.USER);
         user.setDescription("Exploring open source");
         user.setQuote("Open source today, a brighter tomorrow");
 
-        // 6. Save user first
+        // 8. Save user
         UserEntity savedUser = userRepository.save(user);
 
-        // 7. Generate verification token
+        // 9. Generate verification token
         String token = generateVerificationToken();
 
-        // 8. Create verification token entity
+        // 10. Create verification token
         EmailVerificationTokenEntity verificationToken =
                 new EmailVerificationTokenEntity();
 
@@ -117,10 +139,10 @@ public class AuthServiceImpl implements AuthService {
         );
         verificationToken.setUsed(false);
 
-        // 9. Save verification token
+        // 11. Save verification token
         tokenRepository.save(verificationToken);
 
-//        10. Send Email
+        // 12. Send verification email
         emailService.sendVerificationEmail(
                 savedUser.getEmail(),
                 savedUser.getName(),

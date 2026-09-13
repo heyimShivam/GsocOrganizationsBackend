@@ -26,7 +26,7 @@ public class UserEntity {
     @Column
     private String password;
 
-    @Column(name = "github_username")
+    @Column(name = "github_username", unique = true)
     private String githubUsername;
 
     @Enumerated(EnumType.STRING)

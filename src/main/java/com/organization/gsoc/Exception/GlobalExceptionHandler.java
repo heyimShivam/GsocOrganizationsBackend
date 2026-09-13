@@ -2,6 +2,7 @@ package com.organization.gsoc.Exception;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
@@ -146,5 +147,59 @@ public class GlobalExceptionHandler {
         return ResponseEntity
                 .status(HttpStatus.NOT_FOUND)
                 .body(Map.of("message", ex.getMessage()));
+    }
+
+    @ExceptionHandler(GithubUsernameAlreadyExistsException.class)
+    public ResponseEntity<Map<String, String>> handleGithubUsernameAlreadyExists(
+            GithubUsernameAlreadyExistsException ex
+    ) {
+        return ResponseEntity
+                .status(HttpStatus.CONFLICT)
+                .body(Map.of(
+                        "message",
+                        ex.getMessage()
+                ));
+    }
+
+    @ExceptionHandler(MethodArgumentNotValidException.class)
+    public ResponseEntity<Map<String, String>> handleValidationErrors(
+            MethodArgumentNotValidException ex
+    ) {
+
+        String message = ex.getBindingResult()
+                .getFieldErrors()
+                .stream()
+                .findFirst()
+                .map(error -> {
+
+                    String field = error.getField();
+
+                    if ("password".equals(field)) {
+                        return "Password must be at least 8 characters";
+                    }
+
+                    if ("confirmPassword".equals(field)) {
+                        return "Confirm password must be at least 8 characters";
+                    }
+
+                    if ("name".equals(field)) {
+                        return "Name is required";
+                    }
+
+                    if ("email".equals(field)) {
+                        return "Please provide a valid email address";
+                    }
+
+                    if ("githubUsername".equals(field)) {
+                        return "GitHub username must not exceed 255 characters";
+                    }
+
+                    return error.getDefaultMessage();
+                })
+                .orElse("Invalid request");
+
+        return ResponseEntity
+                .badRequest()
+                .body(Map.of("message", message));
     }
 }
