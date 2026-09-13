@@ -16,7 +16,7 @@ public class CorsConfig {
             public void addCorsMappings(CorsRegistry registry) {
                 registry
                         .addMapping("/**")
-                        .allowedOriginPatterns("http://localhost:*")
+                        .allowedOriginPatterns("http://localhost:*", "https://gsocorganizationsfrontend.netlify.app/")
                         .allowedMethods(
                                 "GET",
                                 "POST",
