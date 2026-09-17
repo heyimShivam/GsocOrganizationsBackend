@@ -26,6 +26,8 @@ import org.springframework.transaction.annotation.Transactional;
 import java.security.SecureRandom;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 @Service
 public class AuthServiceImpl implements AuthService {
@@ -36,6 +38,8 @@ public class AuthServiceImpl implements AuthService {
     private final EmailService emailService;
     private final AuthenticationManager authenticationManager;
     private final SecurityContextRepository securityContextRepository;
+    private static final Logger log =
+            LoggerFactory.getLogger(AuthServiceImpl.class);
     public AuthServiceImpl(
             UserRepository userRepository,
             PasswordEncoder passwordEncoder,
@@ -64,7 +68,6 @@ public class AuthServiceImpl implements AuthService {
     @Override
     @Transactional
     public void signup(SignupRequest request) {
-
         // 1. Check password confirmation
         if (!request.password().equals(request.confirmPassword())) {
             throw new PasswordMismatchException(
@@ -76,6 +79,7 @@ public class AuthServiceImpl implements AuthService {
         String email = request.email()
                 .trim()
                 .toLowerCase();
+        log.info("Signup started for email={}", email);
 
         // 3. Check whether email already exists
         if (userRepository.existsByEmail(email)) {
@@ -124,6 +128,7 @@ public class AuthServiceImpl implements AuthService {
 
         // 8. Save user
         UserEntity savedUser = userRepository.save(user);
+        log.info("User saved: id={}, email={}", savedUser.getId(), savedUser.getEmail());
 
         // 9. Generate verification token
         String token = generateVerificationToken();
@@ -141,13 +146,27 @@ public class AuthServiceImpl implements AuthService {
 
         // 11. Save verification token
         tokenRepository.save(verificationToken);
+        log.info("Verification token saved for userId={}", savedUser.getId());
 
         // 12. Send verification email
-        emailService.sendVerificationEmail(
-                savedUser.getEmail(),
-                savedUser.getName(),
-                token
-        );
+        try {
+            log.info("Sending verification email to={}", savedUser.getEmail());
+
+            emailService.sendVerificationEmail(
+                    savedUser.getEmail(),
+                    savedUser.getName(),
+                    token
+            );
+
+            log.info("Verification email sent to={}", savedUser.getEmail());
+        } catch (Exception ex) {
+            log.error("Verification email sending failed for email={}",
+                    savedUser.getEmail(), ex);
+
+            throw new GithubUsernameAlreadyExistsException(
+                    "Not able to send email"
+            );
+        }
     }
 
     @Override
