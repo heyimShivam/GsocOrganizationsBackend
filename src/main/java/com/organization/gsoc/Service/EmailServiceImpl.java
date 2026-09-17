@@ -1,6 +1,7 @@
 package com.organization.gsoc.Service.Impl;
 
 import com.organization.gsoc.Service.EmailService;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.stereotype.Service;
@@ -9,9 +10,14 @@ import org.springframework.stereotype.Service;
 public class EmailServiceImpl implements EmailService {
 
     private final JavaMailSender mailSender;
+    private final String frontendUrl;
 
-    public EmailServiceImpl(JavaMailSender mailSender) {
+    public EmailServiceImpl(
+            JavaMailSender mailSender,
+            @Value("${app.frontend.url}") String frontendUrl
+    ) {
         this.mailSender = mailSender;
+        this.frontendUrl = frontendUrl;
     }
 
     @Override
@@ -22,7 +28,7 @@ public class EmailServiceImpl implements EmailService {
     ) {
 
         String verificationLink =
-                "http://localhost:3000/verify-email?token=" + token;
+                frontendUrl + "/verify-email?token=" + token;
 
         SimpleMailMessage message = new SimpleMailMessage();
 

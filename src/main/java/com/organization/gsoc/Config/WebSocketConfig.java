@@ -1,5 +1,6 @@
 package com.organization.gsoc.Config;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.messaging.simp.config.ChannelRegistration;
 import org.springframework.messaging.simp.config.MessageBrokerRegistry;
@@ -11,6 +12,14 @@ import org.springframework.web.socket.config.annotation.WebSocketMessageBrokerCo
 @EnableWebSocketMessageBroker
 public class WebSocketConfig
         implements WebSocketMessageBrokerConfigurer {
+
+    private final String frontendUrl;
+
+    public WebSocketConfig(
+            @Value("${app.frontend.url}") String frontendUrl
+    ) {
+        this.frontendUrl = frontendUrl;
+    }
 
     @Override
     public void configureMessageBroker(
@@ -39,6 +48,6 @@ public class WebSocketConfig
                 .addInterceptors(
                         new WebSocketHandshakeInterceptor()
                 )
-                .setAllowedOriginPatterns("http://localhost:*");
+                .setAllowedOriginPatterns(frontendUrl);
     }
 }
